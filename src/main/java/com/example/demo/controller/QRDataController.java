@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/qr")
-@CrossOrigin(origins = "http://localhost:3000") // Adjust for frontend
+// Adjust for frontend
 public class QRDataController {
     
     @Autowired

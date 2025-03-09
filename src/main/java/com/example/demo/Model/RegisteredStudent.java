@@ -1,6 +1,9 @@
 package com.example.demo.Model;
 
+import java.time.LocalDateTime;
 import java.util.Base64;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.*;
 
@@ -25,6 +28,9 @@ public class RegisteredStudent {
 
     private String email;
     
+    @Transient
+    private String paymentImageBase64;  // Transient field to store Base64 image
+
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] paymentImage;
@@ -37,6 +43,17 @@ public class RegisteredStudent {
     @JoinColumn(name = "event_id", nullable = false) // Foreign key column
     private Events event;
 
+    
+    @Column(nullable =true, updatable = false)
+    @CreationTimestamp // Automatically sets the current timestamp
+    private LocalDateTime registrationDate;
+    
+    
+    @Transient
+    private String formattedRegistrationDate;
+    
+    
+    
     // Constructors
     public RegisteredStudent() {}
 
@@ -55,6 +72,13 @@ public class RegisteredStudent {
         this.status = status;
     }
     
+    public String getFormattedRegistrationDate() {
+        return formattedRegistrationDate;
+    }
+
+    public void setFormattedRegistrationDate(String formattedRegistrationDate) {
+        this.formattedRegistrationDate = formattedRegistrationDate;
+    }
     // Getters and Setters
     public Long getId() {
         return id;
@@ -73,6 +97,13 @@ public class RegisteredStudent {
     }
 
    
+    public LocalDateTime getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public void setRegistrationDate(LocalDateTime registrationDate) {
+        this.registrationDate = registrationDate;
+    }
 
     public String getNumber() {
         return number;
@@ -147,6 +178,14 @@ public class RegisteredStudent {
 
 	public void setReceiptNumber(String receiptNumber) {
 		this.receiptNumber = receiptNumber;
+	}
+
+	public String getPaymentImageBase64() {
+		return paymentImageBase64;
+	}
+
+	public void setPaymentImageBase64(String paymentImageBase64) {
+		this.paymentImageBase64 = paymentImageBase64;
 	}
     
     

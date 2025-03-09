@@ -56,6 +56,7 @@ public class Events {
     
     private boolean isTeamParticipation;
     
+    private Integer maxAllowedParticipants; 
     private Integer maxTeamSize;
     
  // One-to-Many with RegisteredStudent
@@ -67,6 +68,8 @@ public class Events {
     @JsonIgnore
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Team> teams = new ArrayList<>();
+    
+    
     
     // Getters and Setters
     public Long getId() {
@@ -173,6 +176,14 @@ public class Events {
 
 	public void setRulebookBase64(String rulebookBase64) {
 		this.rulebookBase64 = rulebookBase64;
+	}
+
+	public Integer getMaxAllowedParticipants() {
+		return maxAllowedParticipants;
+	}
+
+	public void setMaxAllowedParticipants(Integer maxAllowedParticipants) {
+		this.maxAllowedParticipants = maxAllowedParticipants;
 	}
     
 	
