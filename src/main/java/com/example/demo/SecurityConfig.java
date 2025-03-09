@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,14 +34,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
+            .cors(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session
             .authorizeHttpRequests(auth -> auth
             		.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
             		.requestMatchers(HttpMethod.GET, "/api/events", "/api/events/{id}", "/api/sponsors/all", "/api/qr/getall").permitAll() // Allow public access
                 .requestMatchers(HttpMethod.POST,"/api/auth/signup" , "/api/auth/login", "/api/registered-students/register", "/api/registered-students/register-team").permitAll() 
-                .requestMatchers("/api/auth/**", "/api/events/**", "/api/email/send-to-student/{id}", "/api/email/send-to-team/{teamId}", "/api/email/send-to-all", "/api/auth/info", "/api/auth/logout", "/api/auth/{id}/registered-students",
+		.requestMatchers(HttpMethod.POST, "/api/events/create").hasRole("ADMIN")                
+		.requestMatchers("/api/auth/**", "/api/events/**", "/api/email/send-to-student/{id}", "/api/email/send-to-team/{teamId}", "/api/email/send-to-all", "/api/auth/info", "/api/auth/logout", "/api/auth/{id}/registered-students",
                 		"/api/auth/{id}/teams", "/api/auth/{id}/get-student", "/api/auth/search", "/api/auth/teams/search", "/api/events/edit/{id}", "/api/sponsors/add",
                 		"/api/sponsors/delete/{id}", "/api/qr/postqr").hasRole("ADMIN")
                 .anyRequest().authenticated() // All other requests need authentication
@@ -53,7 +55,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("http://160.250.146.243"));
         configuration.setAllowedHeaders(List.of("Content-Type", "Authorization"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

@@ -33,7 +33,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins =  "http://localhost:3000", allowCredentials="true")
 public class AuthController {
 
 	@Autowired
@@ -64,7 +63,7 @@ public class AuthController {
 	        // Set token as HttpOnly cookie
 	        Cookie cookie = new Cookie("auth_token", token);
 	        cookie.setHttpOnly(true);
-	        cookie.setSecure(true);
+	   	cookie.setSecure(false);
 	        cookie.setPath("/");
 	        cookie.setMaxAge(24 * 60 * 60);
 
@@ -85,7 +84,7 @@ public class AuthController {
 
             Cookie cookie = new Cookie("auth_token", token);
             cookie.setHttpOnly(true);
-            cookie.setSecure(true);
+            cookie.setSecure(false);
             cookie.setPath("/");
             cookie.setMaxAge(24 * 60 * 60);
 
@@ -121,7 +120,7 @@ public class AuthController {
     public ResponseEntity<String> logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("auth_token", null);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setPath("/");
         cookie.setMaxAge(0);
 
