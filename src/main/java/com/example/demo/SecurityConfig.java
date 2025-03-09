@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,8 +34,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
+            .cors(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session
             .authorizeHttpRequests(auth -> auth
             		.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
@@ -45,8 +46,6 @@ public class SecurityConfig {
                 		"/api/sponsors/delete/{id}", "/api/qr/postqr", "/api/auth/{id}/students/verified", "/api/auth/{id}/students/not-verified", "/api/auth/{id}/teams/all",
                 		"/api/auth/{id}/teams/verified", "/api/auth/{id}/teams/not-verified", "/api/auth/{id}/students/all/download", "/api/auth/{id}/students/verified/download",
                 		"/api/auth/{id}/teams/all/download", "/api/auth/{id}/teams/verified/download").hasRole("ADMIN")
-                		
-                        
                 .anyRequest().authenticated() // All other requests need authentication
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
@@ -57,7 +56,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedOrigins(List.of("http://160.250.146.243"));
         configuration.setAllowedHeaders(List.of("Content-Type", "Authorization"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

@@ -45,7 +45,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin( allowCredentials="true")
 public class AuthController {
 
 	@Autowired
