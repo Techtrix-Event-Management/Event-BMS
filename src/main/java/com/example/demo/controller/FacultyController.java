@@ -26,35 +26,6 @@ public class FacultyController {
 	private JwtUtil jwtUtil;
     @Autowired
     private FacultyService facultyService;
-
-    
-
-   
-    
-//    @PostMapping
-//    public Faculty addFaculty(@RequestBody Faculty faculty) {
-//        return facultyService.addFaculty(faculty);
-//    }
-//
-//    @GetMapping
-//    public List<Faculty> getAllFaculty() {
-//        return facultyService.getAllFaculty();
-//    }
-//
-//    @GetMapping("/{id}")
-//    public Optional<Faculty> getFacultyById(@PathVariable Long id) {
-//        return facultyService.getFacultyById(id);
-//    }
-//
-//    @PutMapping("/{id}")
-//    public Faculty updateFaculty(@PathVariable Long id, @RequestBody Faculty updatedFaculty) {
-//        return facultyService.updateFaculty(id, updatedFaculty);
-//    }
-//
-//    @DeleteMapping("/{id}")
-//    public void deleteFaculty(@PathVariable Long id) {
-//        facultyService.deleteFaculty(id);
-//    }
     
  // Add this method to your FacultyController
     @GetMapping("/getFacultyByEmail")

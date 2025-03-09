@@ -41,10 +41,11 @@ public class SecurityConfig {
             		.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
             		.requestMatchers(HttpMethod.GET, "/api/events", "/api/events/{id}", "/api/sponsors/all", "/api/qr/getall").permitAll() // Allow public access
                 .requestMatchers(HttpMethod.POST,"/api/auth/signup" , "/api/auth/login", "/api/registered-students/register", "/api/registered-students/register-team").permitAll() 
-		.requestMatchers(HttpMethod.POST, "/api/events/create").hasRole("ADMIN")                
-		.requestMatchers("/api/auth/**", "/api/events/**", "/api/email/send-to-student/{id}", "/api/email/send-to-team/{teamId}", "/api/email/send-to-all", "/api/auth/info", "/api/auth/logout", "/api/auth/{id}/registered-students",
-                		"/api/auth/{id}/teams", "/api/auth/{id}/get-student", "/api/auth/search", "/api/auth/teams/search", "/api/events/edit/{id}", "/api/sponsors/add",
-                		"/api/sponsors/delete/{id}", "/api/qr/postqr").hasRole("ADMIN")
+                .requestMatchers("/api/auth/**", "/api/events/**", "/api/email/send-to-student/{id}", "/api/email/send-to-team/{teamId}", "/api/email/send-to-all", "/api/auth/info", "/api/auth/logout", "/api/auth/{id}/students/all",
+                		 "/api/auth/{id}/get-student", "/api/auth/search", "/api/auth/teams/search", "/api/events/edit/{id}", "/api/sponsors/add",
+                		"/api/sponsors/delete/{id}", "/api/qr/postqr", "/api/auth/{id}/students/verified", "/api/auth/{id}/students/not-verified", "/api/auth/{id}/teams/all",
+                		"/api/auth/{id}/teams/verified", "/api/auth/{id}/teams/not-verified", "/api/auth/{id}/students/all/download", "/api/auth/{id}/students/verified/download",
+                		"/api/auth/{id}/teams/all/download", "/api/auth/{id}/teams/verified/download").hasRole("ADMIN")
                 .anyRequest().authenticated() // All other requests need authentication
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
