@@ -1,7 +1,10 @@
 package com.example.demo.Model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -18,6 +21,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "teams")
@@ -58,6 +62,30 @@ public class Team {
     @JsonManagedReference
     private List<TeamMember> members = new ArrayList<>();
 
+    @Column(nullable = true, updatable = false)
+    @CreationTimestamp // Automatically sets the current timestamp
+    private LocalDateTime registrationDate;
+    
+    
+    @Transient
+    private String formattedRegistrationDate;
+    
+    
+    public String getFormattedRegistrationDate() {
+        return formattedRegistrationDate;
+    }
+
+    public void setFormattedRegistrationDate(String formattedRegistrationDate) {
+        this.formattedRegistrationDate = formattedRegistrationDate;
+    }
+    public LocalDateTime getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public void setRegistrationDate(LocalDateTime registrationDate) {
+        this.registrationDate = registrationDate;
+    }
+    
 	public Long getId() {
 		return id;
 	}

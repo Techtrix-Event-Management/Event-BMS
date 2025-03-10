@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -73,12 +75,36 @@ public class AuthService {
 
 
     
+	public Page<RegisteredStudent> getAllRegisteredStudentsByEventId(Long eventId, Pageable pageable) {
+        return registeredStudentRepository.findByEventId(eventId, pageable);
+    }
+
+    public Page<RegisteredStudent> getStudentsByStatus(Long eventId, String status, Pageable pageable) {
+        return registeredStudentRepository.findByEventIdAndStatus(eventId, status, pageable);
+    }
+
+    public Page<Team> getAllTeamsByEventId(Long eventId, Pageable pageable) {
+        return teamRepository.findByEventId(eventId, pageable);
+    }
+
+    public Page<Team> getTeamsByStatus(Long eventId, String status, Pageable pageable) {
+        return teamRepository.findByEventIdAndStatus(eventId, status, pageable);
+    }
+    
     public List<RegisteredStudent> getAllRegisteredStudentsByEventId(Long eventId) {
         return registeredStudentRepository.findByEventId(eventId);
     }
 
+    public List<RegisteredStudent> getStudentsByStatus(Long eventId, String status) {
+        return registeredStudentRepository.findByEventIdAndStatus(eventId, status);
+    }
+
     public List<Team> getAllTeamsByEventId(Long eventId) {
-        return teamRepository.findByEventIdWithMembers(eventId);
+        return teamRepository.findByEventId(eventId);
+    }
+
+    public List<Team> getTeamsByStatus(Long eventId, String status) {
+        return teamRepository.findByEventIdAndStatus(eventId, status);
     }
     
     public List<RegisteredStudent> searchStudentsByName(String name) {

@@ -1,7 +1,12 @@
 package com.example.demo.Model;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,6 +33,18 @@ public class TeamMember {
     @JsonBackReference
     private Team team;
 
+    @Column(nullable = true, updatable = false)
+    @CreationTimestamp // Automatically sets the current timestamp
+    private LocalDateTime registrationDate;
+
+    // Getters and Setters for registrationDate
+    public LocalDateTime getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public void setRegistrationDate(LocalDateTime registrationDate) {
+        this.registrationDate = registrationDate;
+    }
 	public Long getId() {
 		return id;
 	}

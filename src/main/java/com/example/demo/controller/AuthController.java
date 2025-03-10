@@ -1,13 +1,25 @@
 package com.example.demo.controller;
 
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
+
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.format.DateTimeFormatter;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,6 +52,8 @@ public class AuthController {
 	
 	@Autowired
 	private AuthService authService;
+	
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yy HH:mm");
 	
 	@PostMapping("/signup")
 	public ResponseEntity<String> signup(@RequestBody Map<String, String> requestBody, HttpServletResponse response) {
@@ -130,26 +144,173 @@ public class AuthController {
 
 
     
-    @GetMapping("/{id}/registered-students")
+   
+   
+
+ // 1. Display all registered students (Solo)
+    @GetMapping("/{id}/students/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<RegisteredStudent> getAllRegisteredStudentsByEventId(@PathVariable Long id) {
-        return authService.getAllRegisteredStudentsByEventId(id)
-            .stream()
-            .map(student -> {
-                if (student.getPaymentImage() != null) {
-                    student.setPaymentImage(Base64.getEncoder().encode(student.getPaymentImage()));
-                }
-                return student;
-            })
-            .collect(Collectors.toList());
+    public ResponseEntity<PagedModel<RegisteredStudent>> getAllRegisteredStudents(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            PagedResourcesAssembler<RegisteredStudent> studentPagedResourcesAssembler) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RegisteredStudent> studentsPage = authService.getAllRegisteredStudentsByEventId(id, pageable);
+
+        return ResponseEntity.ok(formatStudentPage(studentsPage, studentPagedResourcesAssembler));
     }
 
-    @GetMapping("/{id}/teams")
+    // 2. Display only verified students (Solo)
+    @GetMapping("/{id}/students/verified")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<Team> getRegisteredTeamsByEventId(@PathVariable Long id) {
-        return authService.getAllTeamsByEventId(id);
+    public ResponseEntity<PagedModel<RegisteredStudent>> getVerifiedStudents(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            PagedResourcesAssembler<RegisteredStudent> studentPagedResourcesAssembler) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RegisteredStudent> studentsPage = authService.getStudentsByStatus(id, "verified", pageable);
+
+        return ResponseEntity.ok(formatStudentPage(studentsPage, studentPagedResourcesAssembler));
     }
 
+    // 3. Display only not verified students (Solo)
+    @GetMapping("/{id}/students/not-verified")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PagedModel<RegisteredStudent>> getNotVerifiedStudents(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            PagedResourcesAssembler<RegisteredStudent> studentPagedResourcesAssembler) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RegisteredStudent> studentsPage = authService.getStudentsByStatus(id, "pending", pageable);
+
+        return ResponseEntity.ok(formatStudentPage(studentsPage, studentPagedResourcesAssembler));
+    }
+
+    // 4. Display all teams
+    @GetMapping("/{id}/teams/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PagedModel<Team>> getAllRegisteredTeams(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            PagedResourcesAssembler<Team> teamPagedResourcesAssembler) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Team> teamsPage = authService.getAllTeamsByEventId(id, pageable);
+
+        return ResponseEntity.ok(formatTeamPage(teamsPage, teamPagedResourcesAssembler));
+    }
+
+    // 5. Display only verified teams
+    @GetMapping("/{id}/teams/verified")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PagedModel<Team>> getVerifiedTeams(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            PagedResourcesAssembler<Team> teamPagedResourcesAssembler) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Team> teamsPage = authService.getTeamsByStatus(id, "verified", pageable);
+
+        return ResponseEntity.ok(formatTeamPage(teamsPage, teamPagedResourcesAssembler));
+    }
+
+    // 6. Display only not verified teams
+    @GetMapping("/{id}/teams/not-verified")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PagedModel<Team>> getNotVerifiedTeams(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            PagedResourcesAssembler<Team> teamPagedResourcesAssembler) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Team> teamsPage = authService.getTeamsByStatus(id, "pending", pageable);
+
+        return ResponseEntity.ok(formatTeamPage(teamsPage, teamPagedResourcesAssembler));
+    }
+
+    // Helper method to format students with date-time
+    private PagedModel<RegisteredStudent> formatStudentPage(Page<RegisteredStudent> studentsPage, 
+                                                             PagedResourcesAssembler<RegisteredStudent> assembler) {
+        return PagedModel.of(studentsPage.map(student -> {
+            student.setFormattedRegistrationDate(student.getRegistrationDate() != null
+                    ? student.getRegistrationDate().format(FORMATTER)
+                    : "No Registration Date");
+            return student;
+        }).getContent(), assembler.toModel(studentsPage).getMetadata());
+    }
+
+    // Helper method to format teams with date-time
+    private PagedModel<Team> formatTeamPage(Page<Team> teamsPage, 
+                                            PagedResourcesAssembler<Team> assembler) {
+        return PagedModel.of(teamsPage.map(team -> {
+            team.setFormattedRegistrationDate(team.getRegistrationDate() != null
+                    ? team.getRegistrationDate().format(FORMATTER)
+                    : "No Registration Date");
+            return team;
+        }).getContent(), assembler.toModel(teamsPage).getMetadata());
+    }
+    
+    
+    @GetMapping("/{id}/students/all/download")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<RegisteredStudent>> downloadAllRegisteredStudents(@PathVariable Long id) {
+        List<RegisteredStudent> students = authService.getAllRegisteredStudentsByEventId(id)
+                .stream().map(this::formatStudentDate).collect(Collectors.toList());
+        return ResponseEntity.ok(students);
+    }
+
+    @GetMapping("/{id}/students/verified/download")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<RegisteredStudent>> downloadVerifiedStudents(@PathVariable Long id) {
+        List<RegisteredStudent> students = authService.getStudentsByStatus(id, "verified")
+                .stream().map(this::formatStudentDate).collect(Collectors.toList());
+        return ResponseEntity.ok(students);
+    }
+
+    @GetMapping("/{id}/teams/all/download")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Team>> downloadAllRegisteredTeams(@PathVariable Long id) {
+        List<Team> teams = authService.getAllTeamsByEventId(id)
+                .stream().map(this::formatTeamDate).collect(Collectors.toList());
+        return ResponseEntity.ok(teams);
+    }
+
+    @GetMapping("/{id}/teams/verified/download")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Team>> downloadVerifiedTeams(@PathVariable Long id) {
+        List<Team> teams = authService.getTeamsByStatus(id, "verified")
+                .stream().map(this::formatTeamDate).collect(Collectors.toList());
+        return ResponseEntity.ok(teams);
+    }
+
+    private RegisteredStudent formatStudentDate(RegisteredStudent student) {
+        if (student.getRegistrationDate() != null) {
+            student.setFormattedRegistrationDate(student.getRegistrationDate().format(FORMATTER));
+        } else {
+            student.setFormattedRegistrationDate("No Registration Date");
+        }
+        return student;
+    }
+
+    private Team formatTeamDate(Team team) {
+        if (team.getRegistrationDate() != null) {
+            team.setFormattedRegistrationDate(team.getRegistrationDate().format(FORMATTER));
+        } else {
+            team.setFormattedRegistrationDate("No Registration Date");
+        }
+        return team;
+    }
+    
+    
     @GetMapping("/{id}/get-student")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RegisteredStudent> getRegisteredStudentById(@PathVariable Long id) {

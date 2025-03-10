@@ -22,6 +22,7 @@ public class EventController {
 
     @Autowired
     private EventService eventService;
+    
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createEvent(
@@ -31,7 +32,8 @@ public class EventController {
         @RequestParam(value = "rulebook", required = false) MultipartFile rulebook,
         @RequestParam("registrationOpen") boolean registrationOpen,
         @RequestParam("isTeamParticipation") boolean isTeamParticipation,
-        @RequestParam(value = "maxTeamSize", required = false) Integer maxTeamSize
+        @RequestParam(value = "maxTeamSize", required = false) Integer maxTeamSize,
+        @RequestParam(value = "maxAllowedParticipants", required = false) Integer maxAllowedParticipants
     ) {
         try {
             Events event = new Events();
@@ -39,16 +41,21 @@ public class EventController {
             event.setDescription(description);
             event.setRegistrationOpen(registrationOpen);
             event.setTeamParticipation(isTeamParticipation);
-            
+
             if (isTeamParticipation) {
                 if (maxTeamSize == null || maxTeamSize < 1) {
                     return ResponseEntity.badRequest().body("Max team size is required and must be at least 1 if team participation is enabled.");
                 }
+                if (maxAllowedParticipants == null || maxAllowedParticipants < 1 || maxAllowedParticipants > maxTeamSize) {
+                    return ResponseEntity.badRequest().body("Max allowed participants must be between 1 and the max team size.");
+                }
                 event.setMaxTeamSize(maxTeamSize);
+                event.setMaxAllowedParticipants(maxAllowedParticipants);
             } else {
-                event.setMaxTeamSize(null); // No team size needed if individual participation
+                event.setMaxTeamSize(null);
+                event.setMaxAllowedParticipants(null);
             }
-            
+
             if (image != null) {
                 event.setImage(image.getBytes());
             }
@@ -74,7 +81,8 @@ public class EventController {
         @RequestParam(value = "rulebook", required = false) MultipartFile rulebook,
         @RequestParam("registrationOpen") boolean registrationOpen,
         @RequestParam("isTeamParticipation") boolean isTeamParticipation,
-        @RequestParam(value = "maxTeamSize", required = false) Integer maxTeamSize
+        @RequestParam(value = "maxTeamSize", required = false) Integer maxTeamSize,
+        @RequestParam(value = "maxAllowedParticipants", required = false) Integer maxAllowedParticipants
     ) {
         try {
             Optional<Events> existingEventOpt = eventService.getEventById(id);
@@ -90,20 +98,16 @@ public class EventController {
 
             if (isTeamParticipation) {
                 if (maxTeamSize == null || maxTeamSize < 1) {
-                    return ResponseEntity.badRequest().body("Max team size is required and must be at least 1 if team participation is enabled.");
+                    return ResponseEntity.badRequest().body("Max team size must be at least 1.");
+                }
+                if (maxAllowedParticipants == null || maxAllowedParticipants < 1 || maxAllowedParticipants > maxTeamSize) {
+                    return ResponseEntity.badRequest().body("Max allowed participants must be between 1 and max team size.");
                 }
                 existingEvent.setMaxTeamSize(maxTeamSize);
+                existingEvent.setMaxAllowedParticipants(maxAllowedParticipants);
             } else {
-                existingEvent.setMaxTeamSize(null); // Reset team size if individual participation
-            }
-            
-            if (image != null && !image.isEmpty()) {
-                existingEvent.setImage(image.getBytes());
-            }else {
-            	System.out.println("No new image uploaded");
-            }
-            if (rulebook != null && !rulebook.isEmpty()) {
-                existingEvent.setRulebook(rulebook.getBytes());
+                existingEvent.setMaxTeamSize(null);
+                existingEvent.setMaxAllowedParticipants(null);
             }
 
             Events updatedEvent = eventService.saveEvent(existingEvent);
@@ -112,6 +116,7 @@ public class EventController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating event: " + e.getMessage());
         }
     }
+
     
    
     @GetMapping
@@ -124,7 +129,7 @@ public class EventController {
             eventMap.put("registrationOpen", event.isRegistrationOpen());
             eventMap.put("isTeamParticipation", event.isTeamParticipation());
             eventMap.put("maxTeamSize", event.getMaxTeamSize());
-
+            eventMap.put("maxAllowedParticipants", event.getMaxAllowedParticipants());
             if (event.getImage() != null) {
                 eventMap.put("image", "data:image/png;base64," + Base64.getEncoder().encodeToString(event.getImage()));
             } else {
@@ -140,9 +145,7 @@ public class EventController {
             return eventMap;
         }).collect(Collectors.toList());
     }
-
-
-   
+    	
     @GetMapping("/{id}")
     public ResponseEntity<?> getEventById(@PathVariable Long id) {
         Optional<Events> eventOpt = eventService.getEventById(id);
@@ -161,12 +164,15 @@ public class EventController {
         response.put("maxTeamSize", event.getMaxTeamSize());
         response.put("registrationOpen", event.isRegistrationOpen());
         response.put("isTeamParticipation", event.isTeamParticipation());
-
+        response.put("maxAllowedParticipants", event.getMaxAllowedParticipants());
+        
+        // Only include image if it exists
         if (event.getImage() != null) {
             String base64Image = Base64.getEncoder().encodeToString(event.getImage());
             response.put("image", base64Image);
         }
 
+        // Only include rulebook if it exists
         if (event.getRulebook() != null) {
             String base64Rulebook = Base64.getEncoder().encodeToString(event.getRulebook());
             response.put("rulebook", base64Rulebook);
@@ -180,66 +186,14 @@ public class EventController {
             response.put("faculty", facultyDetails);
         }
 
-        // Registered Students Details
-        List<Map<String, Object>> studentList = event.getStudents().stream().map(student -> {
-            Map<String, Object> studentDetails = new HashMap<>();
-            studentDetails.put("id", student.getId());
-            studentDetails.put("name", student.getName());
-            studentDetails.put("college", student.getCollege());
-            studentDetails.put("number", student.getNumber());
-            studentDetails.put("email", student.getEmail());
-            studentDetails.put("paymentMethod", student.getPaymentMethod());
-            studentDetails.put("utrNumber", student.getUtrNumber());
-            studentDetails.put("receiptNumber", student.getReceiptNumber());
-            studentDetails.put("status", student.getStatus());
-
-            if (student.getPaymentImage() != null) {
-                String base64PaymentImage = Base64.getEncoder().encodeToString(student.getPaymentImage());
-                studentDetails.put("paymentImage", base64PaymentImage);
-            }
-
-            return studentDetails;
-        }).collect(Collectors.toList());
-        response.put("registeredStudents", studentList);
-
-        // Team details including team members
-        List<Map<String, Object>> teamList = event.getTeams().stream().map(team -> {
-            Map<String, Object> teamDetails = new HashMap<>();
-            teamDetails.put("id", team.getId());
-            teamDetails.put("teamName", team.getTeamName());
-            teamDetails.put("leaderName", team.getLeaderName());
-            teamDetails.put("leaderCollege", team.getLeaderCollege());
-            teamDetails.put("leaderNumber", team.getLeaderNumber());
-            teamDetails.put("leaderEmail", team.getLeaderEmail());
-            teamDetails.put("paymentMethod", team.getPaymentMethod());
-            teamDetails.put("utrNumber", team.getUtrNumber());
-            teamDetails.put("receiptNumber", team.getReceiptNumber());
-            teamDetails.put("status", team.getStatus());
-
-            if (team.getPaymentImage() != null) {
-                String base64PaymentImage = Base64.getEncoder().encodeToString(team.getPaymentImage());
-                teamDetails.put("paymentImage", base64PaymentImage);
-            }
-
-            // Fetch team members
-            List<Map<String, Object>> teamMembers = team.getMembers().stream().map(member -> {
-                Map<String, Object> memberDetails = new HashMap<>();
-                memberDetails.put("id", member.getId());
-                memberDetails.put("name", member.getName());
-                memberDetails.put("college", member.getCollege());
-                memberDetails.put("number", member.getNumber());
-                memberDetails.put("email", member.getEmail());
-                return memberDetails;
-            }).collect(Collectors.toList());
-
-            teamDetails.put("members", teamMembers);
-            return teamDetails;
-        }).collect(Collectors.toList());
-
-        response.put("teams", teamList);
+        // Omit registered students and teams data to improve performance
 
         return ResponseEntity.ok(response);
     }
+
+
+   
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
