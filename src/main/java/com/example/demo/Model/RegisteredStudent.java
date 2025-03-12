@@ -67,7 +67,7 @@ public class RegisteredStudent {
                     .atZone(ZoneId.of("UTC"))   // Treat stored value as UTC
                     .withZoneSameInstant(ZoneId.of("Asia/Kolkata")); // Convert to IST
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             return istTime.format(formatter);
         }
         return "No Registration Date";
@@ -117,7 +117,9 @@ public class RegisteredStudent {
 
    
     public LocalDate getRegistrationDate() {
-        return this.registrationDate.toLocalDate();
+        return registrationDate != null ?
+        registrationDate.atZone(ZoneId.of("UTC")).toLocalDate() :
+	null;
     }
 
     public void setRegistrationDate(Instant registrationDate) {
