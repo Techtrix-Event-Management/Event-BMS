@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin( allowCredentials = "true")
+@CrossOrigin(allowCredentials = "true")
 public class FacultyController {
 
 	@Autowired

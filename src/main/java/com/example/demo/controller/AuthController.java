@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import java.util.Arrays;
 import java.util.Base64;
@@ -45,7 +47,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin( allowCredentials="true")
+@CrossOrigin(allowCredentials="true")
 public class AuthController {
 
 	@Autowired
@@ -78,7 +80,7 @@ public class AuthController {
 	        // Set token as HttpOnly cookie
 	        Cookie cookie = new Cookie("auth_token", token);
 	        cookie.setHttpOnly(true);
-	        cookie.setSecure(false);
+	        cookie.setSecure(true);
 	        cookie.setPath("/");
 	        cookie.setMaxAge(24 * 60 * 60);
 
@@ -92,6 +94,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody Map<String, String> requestBody, HttpServletResponse response) {
+    	
     	String email = requestBody.get("email");
         String password = requestBody.get("password");
         try {
@@ -99,7 +102,7 @@ public class AuthController {
 
             Cookie cookie = new Cookie("auth_token", token);
             cookie.setHttpOnly(true);
-            cookie.setSecure(false);
+            cookie.setSecure(true);
             cookie.setPath("/");
             cookie.setMaxAge(24 * 60 * 60);
 
@@ -135,7 +138,7 @@ public class AuthController {
     public ResponseEntity<String> logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("auth_token", null);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
 
@@ -240,25 +243,25 @@ public class AuthController {
 
     // Helper method to format students with date-time
     private PagedModel<RegisteredStudent> formatStudentPage(Page<RegisteredStudent> studentsPage, 
-                                                             PagedResourcesAssembler<RegisteredStudent> assembler) {
-        return PagedModel.of(studentsPage.map(student -> {
-            student.setFormattedRegistrationDate(student.getRegistrationDate() != null
-                    ? student.getRegistrationDate().format(FORMATTER)
-                    : "No Registration Date");
-            return student;
-        }).getContent(), assembler.toModel(studentsPage).getMetadata());
-    }
+            PagedResourcesAssembler<RegisteredStudent> assembler) {
+			return PagedModel.of(studentsPage.map(student -> {
+			student.setFormattedRegistrationDate(student.getFormattedRegistrationDate());
+			return student;
+			}).getContent(), assembler.toModel(studentsPage).getMetadata());
+	}
+
+
 
     // Helper method to format teams with date-time
     private PagedModel<Team> formatTeamPage(Page<Team> teamsPage, 
-                                            PagedResourcesAssembler<Team> assembler) {
-        return PagedModel.of(teamsPage.map(team -> {
-            team.setFormattedRegistrationDate(team.getRegistrationDate() != null
-                    ? team.getRegistrationDate().format(FORMATTER)
-                    : "No Registration Date");
-            return team;
-        }).getContent(), assembler.toModel(teamsPage).getMetadata());
-    }
+            PagedResourcesAssembler<Team> assembler) {
+			return PagedModel.of(teamsPage.map(team -> {
+			team.setFormattedRegistrationDate(team.getFormattedRegistrationDate());
+			return team;
+			}).getContent(), assembler.toModel(teamsPage).getMetadata());
+			}
+
+
     
     
     @GetMapping("/{id}/students/all/download")
@@ -294,22 +297,15 @@ public class AuthController {
     }
 
     private RegisteredStudent formatStudentDate(RegisteredStudent student) {
-        if (student.getRegistrationDate() != null) {
-            student.setFormattedRegistrationDate(student.getRegistrationDate().format(FORMATTER));
-        } else {
-            student.setFormattedRegistrationDate("No Registration Date");
-        }
+        student.setFormattedRegistrationDate(student.getFormattedRegistrationDate());
         return student;
     }
 
     private Team formatTeamDate(Team team) {
-        if (team.getRegistrationDate() != null) {
-            team.setFormattedRegistrationDate(team.getRegistrationDate().format(FORMATTER));
-        } else {
-            team.setFormattedRegistrationDate("No Registration Date");
-        }
+        team.setFormattedRegistrationDate(team.getFormattedRegistrationDate());
         return team;
     }
+
     
     
     @GetMapping("/{id}/get-student")

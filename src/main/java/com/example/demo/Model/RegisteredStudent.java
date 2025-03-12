@@ -1,8 +1,12 @@
 package com.example.demo.Model;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Base64;
-
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.*;
@@ -46,13 +50,30 @@ public class RegisteredStudent {
     
     @Column(nullable =true, updatable = false)
     @CreationTimestamp // Automatically sets the current timestamp
-    private LocalDateTime registrationDate;
+    private Instant registrationDate;
     
     
     @Transient
     private String formattedRegistrationDate;
     
-    
+    @PrePersist
+    public void prePersist() {
+        this.registrationDate = Instant.now();  // Always store in UTC
+    }
+
+    public String getFormattedRegistrationDate() {
+        if (registrationDate != null) {
+            ZonedDateTime istTime = registrationDate
+                    .atZone(ZoneId.of("UTC"))   // Treat stored value as UTC
+                    .withZoneSameInstant(ZoneId.of("Asia/Kolkata")); // Convert to IST
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+            return istTime.format(formatter);
+        }
+        return "No Registration Date";
+    }
+
+
     
     // Constructors
     public RegisteredStudent() {}
@@ -72,9 +93,7 @@ public class RegisteredStudent {
         this.status = status;
     }
     
-    public String getFormattedRegistrationDate() {
-        return formattedRegistrationDate;
-    }
+    
 
     public void setFormattedRegistrationDate(String formattedRegistrationDate) {
         this.formattedRegistrationDate = formattedRegistrationDate;
@@ -97,11 +116,11 @@ public class RegisteredStudent {
     }
 
    
-    public LocalDateTime getRegistrationDate() {
+    public Instant getRegistrationDate() {
         return registrationDate;
     }
 
-    public void setRegistrationDate(LocalDateTime registrationDate) {
+    public void setRegistrationDate(Instant registrationDate) {
         this.registrationDate = registrationDate;
     }
 
