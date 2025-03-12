@@ -1,3 +1,4 @@
+
 package com.example.demo.controller;
 
 
@@ -58,7 +59,7 @@ public class AuthController {
 	@Autowired
 	private AuthService authService;
 	
-	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yy HH:mm");
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yy");
 	
 	@PostMapping("/signup")
 	public ResponseEntity<String> signup(@RequestBody Map<String, String> requestBody, HttpServletResponse response) {
@@ -247,7 +248,7 @@ public class AuthController {
     private PagedModel<RegisteredStudent> formatStudentPage(Page<RegisteredStudent> studentsPage, 
             PagedResourcesAssembler<RegisteredStudent> assembler) {
 			return PagedModel.of(studentsPage.map(student -> {
-			student.setFormattedRegistrationDate(student.getFormattedRegistrationDate());
+			student.setFormattedRegistrationDate(student.getRegistrationDate().format(DATE_FORMATTER));
 			return student;
 			}).getContent(), assembler.toModel(studentsPage).getMetadata());
 	}
@@ -258,7 +259,7 @@ public class AuthController {
     private PagedModel<Team> formatTeamPage(Page<Team> teamsPage, 
             PagedResourcesAssembler<Team> assembler) {
 			return PagedModel.of(teamsPage.map(team -> {
-			team.setFormattedRegistrationDate(team.getFormattedRegistrationDate());
+			team.setFormattedRegistrationDate(team.getRegistrationDate().format(DATE_FORMATTER));
 			return team;
 			}).getContent(), assembler.toModel(teamsPage).getMetadata());
 			}
@@ -299,12 +300,12 @@ public class AuthController {
     }
 
     private RegisteredStudent formatStudentDate(RegisteredStudent student) {
-        student.setFormattedRegistrationDate(student.getFormattedRegistrationDate());
+        student.setFormattedRegistrationDate(student.getRegistrationDate().format(DATE_FORMATTER));
         return student;
     }
 
     private Team formatTeamDate(Team team) {
-        team.setFormattedRegistrationDate(team.getFormattedRegistrationDate());
+        team.setFormattedRegistrationDate(team.getRegistrationDate().format(DATE_FORMATTER));
         return team;
     }
 

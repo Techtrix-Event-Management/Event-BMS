@@ -116,8 +116,8 @@ public class RegisteredStudent {
     }
 
    
-    public Instant getRegistrationDate() {
-        return registrationDate;
+    public LocalDate getRegistrationDate() {
+        return this.registrationDate.toLocalDate();
     }
 
     public void setRegistrationDate(Instant registrationDate) {
