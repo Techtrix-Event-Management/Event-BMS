@@ -18,7 +18,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/qr")
-// Adjust for frontend
 public class QRDataController {
     
     @Autowired
